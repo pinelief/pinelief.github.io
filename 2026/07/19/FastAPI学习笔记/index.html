@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>FastAPI学习笔记 | Pinefaith's Blog</title><meta name="author" content="pinefaith"><meta name="copyright" content="pinefaith"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="FastAPI 学习笔记：从第一个接口到可部署服务  1. FastAPI 解决什么问题 FastAPI 是一个面向 HTTP API 的 Python Web 框架，核心特点是：  用 Python 类型标注描述输入和输出； 自动完成请求解析、数据校验、序列化和 OpenAPI 文档； 基于 ASGI，可同时处理普通 def 与异步 async def 路由； 依赖注入让数据库会话、认证、配置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FastAPI学习笔记">
+<meta property="og:url" content="https://pinelief.github.io/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Pinefaith&#39;s Blog">
+<meta property="og:description" content="FastAPI 学习笔记：从第一个接口到可部署服务  1. FastAPI 解决什么问题 FastAPI 是一个面向 HTTP API 的 Python Web 框架，核心特点是：  用 Python 类型标注描述输入和输出； 自动完成请求解析、数据校验、序列化和 OpenAPI 文档； 基于 ASGI，可同时处理普通 def 与异步 async def 路由； 依赖注入让数据库会话、认证、配置">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pinelief.github.io/img/avatar.jpg">
+<meta property="article:published_time" content="2026-07-19T09:18:20.000Z">
+<meta property="article:modified_time" content="2026-07-19T09:22:31.039Z">
+<meta property="article:author" content="pinefaith">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pinelief.github.io/img/avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "FastAPI学习笔记",
+  "url": "https://pinelief.github.io/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/",
+  "image": "https://pinelief.github.io/img/avatar.jpg",
+  "datePublished": "2026-07-19T09:18:20.000Z",
+  "dateModified": "2026-07-19T09:22:31.039Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "pinefaith",
+      "url": "https://kukual.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://pinelief.github.io/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":"ture","top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400,"highlightFullpage":true,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'FastAPI学习笔记',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Chewy&family=Fredoka+One&family=Caveat:wght@400;700&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;500;700&display=swap" rel="stylesheet"><meta name="generator" content="Hexo 8.1.1"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/background.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/loading.gif" data-original="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/shuoshuo/"><i class="fa-fw fa fa-comments-o"></i><span> 分享</span></a></li><li><a class="site-page child" href="/photos/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影视</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/default_top_img.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Pinefaith's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">FastAPI学习笔记</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/shuoshuo/"><i class="fa-fw fa fa-comments-o"></i><span> 分享</span></a></li><li><a class="site-page child" href="/photos/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影视</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">FastAPI学习笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-19T09:18:20.000Z" title="发表于 2026-07-19 17:18:20">2026-07-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-19T09:22:31.039Z" title="更新于 2026-07-19 17:22:31">2026-07-19</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;鏈枃鏈€鍚庢洿鏂颁簬&quot;,&quot;messageNext&quot;:&quot;澶╁墠锛岄儴鍒嗗唴瀹瑰彲鑳藉凡澶辨晥&quot;,&quot;postUpdate&quot;:&quot;2026-07-19 17:22:31&quot;}" hidden></div><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/hint.css/2.4.1/hint.min.css"><h1 id="fastapi-学习笔记从第一个接口到可部署服务"><a class="markdownIt-Anchor" href="#fastapi-学习笔记从第一个接口到可部署服务"></a> FastAPI 学习笔记：从第一个接口到可部署服务</h1>
+<h2 id="1-fastapi-解决什么问题"><a class="markdownIt-Anchor" href="#1-fastapi-解决什么问题"></a> 1. FastAPI 解决什么问题</h2>
+<p>FastAPI 是一个面向 HTTP API 的 Python Web 框架，核心特点是：</p>
+<ul>
+<li>用 Python 类型标注描述输入和输出；</li>
+<li>自动完成请求解析、数据校验、序列化和 OpenAPI 文档；</li>
+<li>基于 ASGI，可同时处理普通 <code>def</code> 与异步 <code>async def</code> 路由；</li>
+<li>依赖注入让数据库会话、认证、配置等横切逻辑可复用。</li>
+</ul>
+<p>它不是“让任何程序都自动更快”的框架。<code>async</code> 在网络、数据库等 I/O 等待场景能提升并发利用率；CPU 密集型任务仍应交给任务队列、进程池或独立计算服务。</p>
+<h2 id="2-安装-启动与交互文档"><a class="markdownIt-Anchor" href="#2-安装-启动与交互文档"></a> 2. 安装、启动与交互文档</h2>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python -m venv .venv</span><br><span class="line"><span class="comment"># Windows PowerShell</span></span><br><span class="line">.venv\Scripts\Activate.ps1</span><br><span class="line">pip install <span class="string">&quot;fastapi[standard]&quot;</span></span><br></pre></td></tr></table></figure>
+<p>创建 <code>main.py</code>：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"></span><br><span class="line">app = FastAPI(title=<span class="string">&quot;Todo API&quot;</span>, version=<span class="string">&quot;0.1.0&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">health_check</span>():</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>开发环境运行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fastapi dev main.py</span><br><span class="line"><span class="comment"># 或 uvicorn main:app --reload</span></span><br></pre></td></tr></table></figure>
+<p>访问 <code>http://127.0.0.1:8000/docs</code> 使用 Swagger UI，访问 <code>/redoc</code> 查看 ReDoc。接口描述来自 OpenAPI，因此接口一变，文档也会同步更新。生产环境通常关闭或限制文档入口，避免暴露内部接口结构。</p>
+<h2 id="3-路径-查询与请求体参数"><a class="markdownIt-Anchor" href="#3-路径-查询与请求体参数"></a> 3. 路径、查询与请求体参数</h2>
+<p>FastAPI 通过函数签名判断参数来源：路径模板中出现的同名参数是路径参数；简单类型通常是查询参数；Pydantic 模型通常是 JSON 请求体。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, HTTPException, Path, Query</span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TodoCreate</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    title: <span class="built_in">str</span> = Field(min_length=<span class="number">1</span>, max_length=<span class="number">100</span>, examples=[<span class="string">&quot;学习 FastAPI&quot;</span>])</span><br><span class="line">    completed: <span class="built_in">bool</span> = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/todos/&#123;todo_id&#125;&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_todo</span>(<span class="params"></span></span><br><span class="line"><span class="params">    todo_id: Annotated[<span class="built_in">int</span>, Path(<span class="params">gt=<span class="number">0</span></span>)],</span></span><br><span class="line"><span class="params">    include_completed: <span class="built_in">bool</span> = Query(<span class="params"><span class="literal">True</span></span>),</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="keyword">if</span> todo_id != <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">404</span>, detail=<span class="string">&quot;待办不存在&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;id&quot;</span>: todo_id, <span class="string">&quot;include_completed&quot;</span>: include_completed&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.post(<span class="params"><span class="string">&quot;/todos&quot;</span>, status_code=<span class="number">201</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_todo</span>(<span class="params">todo: TodoCreate</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;id&quot;</span>: <span class="number">1</span>, **todo.model_dump()&#125;</span><br></pre></td></tr></table></figure>
+<p>常见规则：</p>
+<ul>
+<li><code>GET /todos?skip=0&amp;limit=20</code> 中的 <code>skip</code>、<code>limit</code> 是查询参数；</li>
+<li><code>GET /todos/{todo_id}</code> 中的 <code>todo_id</code> 是路径参数，转换失败会得到 422；</li>
+<li>JSON 传给 <code>TodoCreate</code>，字段缺失或不合法也会得到结构化的 422 错误；</li>
+<li>路由声明顺序有意义：<code>/users/me</code> 应写在 <code>/users/{user_id}</code> 之前。</li>
+</ul>
+<h3 id="可选字段-别名与多请求体"><a class="markdownIt-Anchor" href="#可选字段-别名与多请求体"></a> 可选字段、别名与多请求体</h3>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, ConfigDict, Field</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TodoUpdate</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    model_config = ConfigDict(populate_by_name=<span class="literal">True</span>)</span><br><span class="line">    title: <span class="built_in">str</span> | <span class="literal">None</span> = Field(default=<span class="literal">None</span>, alias=<span class="string">&quot;todoTitle&quot;</span>, min_length=<span class="number">1</span>)</span><br><span class="line">    completed: <span class="built_in">bool</span> | <span class="literal">None</span> = <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<p>部分更新时不要把未提交字段覆盖成 <code>None</code>：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.patch(<span class="params"><span class="string">&quot;/todos/&#123;todo_id&#125;&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">update_todo</span>(<span class="params">todo_id: <span class="built_in">int</span>, patch: TodoUpdate</span>):</span><br><span class="line">    changes = patch.model_dump(exclude_unset=<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;id&quot;</span>: todo_id, **changes&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="4-pydantic校验与序列化的边界"><a class="markdownIt-Anchor" href="#4-pydantic校验与序列化的边界"></a> 4. Pydantic：校验与序列化的边界</h2>
+<p>请求模型（DTO）不应直接等同数据库实体。一个实用的分层是：</p>
+<ul>
+<li><code>TodoCreate</code>：创建时允许的字段；</li>
+<li><code>TodoUpdate</code>：更新时允许且可选的字段；</li>
+<li><code>TodoRead</code>：响应中允许暴露的字段；</li>
+<li>ORM 实体：持久化结构，不直接作为外部契约。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, ConfigDict</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TodoRead</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    model_config = ConfigDict(from_attributes=<span class="literal">True</span>)</span><br><span class="line">    <span class="built_in">id</span>: <span class="built_in">int</span></span><br><span class="line">    title: <span class="built_in">str</span></span><br><span class="line">    completed: <span class="built_in">bool</span></span><br><span class="line">    created_at: datetime</span><br></pre></td></tr></table></figure>
+<p>在路由中声明 <code>response_model=TodoRead</code>。这不仅生成文档，也会过滤意外返回的敏感字段，例如 <code>password_hash</code>、内部标识或审计信息。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/todos/&#123;todo_id&#125;&quot;</span>, response_model=TodoRead</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_todo</span>(<span class="params">todo_id: <span class="built_in">int</span></span>):</span><br><span class="line">    <span class="keyword">return</span> todo_orm_object</span><br></pre></td></tr></table></figure>
+<p><code>model_dump()</code> 用于模型转字典，<code>model_validate()</code> 用于按模型规则构造/校验对象。Pydantic v2 的旧版 <code>dict()</code>、<code>parse_obj()</code> 写法仍可能看到，但新代码优先使用 v2 API。</p>
+<h2 id="5-响应-状态码与错误处理"><a class="markdownIt-Anchor" href="#5-响应-状态码与错误处理"></a> 5. 响应、状态码与错误处理</h2>
+<p>成功响应应使用语义正确的状态码：创建为 <code>201</code>，无响应体的删除为 <code>204</code>，非法输入由校验层返回 <code>422</code>，未认证 <code>401</code>，无权限 <code>403</code>，不存在 <code>404</code>，冲突 <code>409</code>。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> HTTPException, Response, status</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.delete(<span class="params"><span class="string">&quot;/todos/&#123;todo_id&#125;&quot;</span>, status_code=status.HTTP_204_NO_CONTENT</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">delete_todo</span>(<span class="params">todo_id: <span class="built_in">int</span></span>) -&gt; Response:</span><br><span class="line">    <span class="comment"># 执行删除；找不到时 raise HTTPException(404, &quot;待办不存在&quot;)</span></span><br><span class="line">    <span class="keyword">return</span> Response(status_code=status.HTTP_204_NO_CONTENT)</span><br></pre></td></tr></table></figure>
+<p>业务异常可以集中转换，保持错误格式一致：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Request</span><br><span class="line"><span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> JSONResponse</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DomainError</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, message: <span class="built_in">str</span>, status_code: <span class="built_in">int</span> = <span class="number">400</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.message = message</span><br><span class="line">        <span class="variable language_">self</span>.status_code = status_code</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.exception_handler(<span class="params">DomainError</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">domain_error_handler</span>(<span class="params">_: Request, exc: DomainError</span>):</span><br><span class="line">    <span class="keyword">return</span> JSONResponse(</span><br><span class="line">        status_code=exc.status_code,</span><br><span class="line">        content=&#123;<span class="string">&quot;detail&quot;</span>: exc.message&#125;,</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+<p>不要把底层数据库异常原样返回给客户端；记录完整日志，对外给稳定、可理解且不泄露实现细节的错误信息。</p>
+<h2 id="6-依赖注入复用请求级逻辑"><a class="markdownIt-Anchor" href="#6-依赖注入复用请求级逻辑"></a> 6. 依赖注入：复用请求级逻辑</h2>
+<p><code>Depends</code> 将路由依赖显式写进签名。它适合分页参数、数据库会话、当前用户、权限检查和配置等逻辑。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, Query</span><br><span class="line"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Page</span>(<span class="title class_ inherited__">BaseModel</span>):</span><br><span class="line">    offset: <span class="built_in">int</span> = <span class="number">0</span></span><br><span class="line">    limit: <span class="built_in">int</span> = <span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pagination</span>(<span class="params"></span></span><br><span class="line"><span class="params">    offset: Annotated[<span class="built_in">int</span>, Query(<span class="params">ge=<span class="number">0</span></span>)] = <span class="number">0</span>,</span></span><br><span class="line"><span class="params">    limit: Annotated[<span class="built_in">int</span>, Query(<span class="params">ge=<span class="number">1</span>, le=<span class="number">100</span></span>)] = <span class="number">20</span>,</span></span><br><span class="line"><span class="params"></span>) -&gt; Page:</span><br><span class="line">    <span class="keyword">return</span> Page(offset=offset, limit=limit)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/todos&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">list_todos</span>(<span class="params">page: Annotated[Page, Depends(<span class="params">pagination</span>)]</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;items&quot;</span>: [], <span class="string">&quot;offset&quot;</span>: page.offset, <span class="string">&quot;limit&quot;</span>: page.limit&#125;</span><br></pre></td></tr></table></figure>
+<p>依赖可以嵌套。认证依赖获得当前用户，业务路由再依赖它；框架会在单个请求内缓存默认依赖结果。需要每次重新计算时使用 <code>Depends(..., use_cache=False)</code>。</p>
+<h2 id="7-sqlalchemy-20-与数据库会话"><a class="markdownIt-Anchor" href="#7-sqlalchemy-20-与数据库会话"></a> 7. SQLAlchemy 2.0 与数据库会话</h2>
+<p>以下示例使用同步 SQLAlchemy 2.0。同步数据库驱动应配合同步路由 <code>def</code>；异步路由使用 <code>AsyncSession</code> 和支持 async 的驱动。不要在 <code>async def</code> 中直接执行阻塞型 ORM 操作。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip install sqlalchemy</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># app/db/session.py</span></span><br><span class="line"><span class="keyword">from</span> collections.abc <span class="keyword">import</span> Generator</span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> create_engine</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.orm <span class="keyword">import</span> Session, sessionmaker</span><br><span class="line"></span><br><span class="line">engine = create_engine(<span class="string">&quot;sqlite:///./todos.db&quot;</span>, connect_args=&#123;<span class="string">&quot;check_same_thread&quot;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line">SessionLocal = sessionmaker(bind=engine, autoflush=<span class="literal">False</span>, autocommit=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_db</span>() -&gt; Generator[Session, <span class="literal">None</span>, <span class="literal">None</span>]:</span><br><span class="line">    db = SessionLocal()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">yield</span> db</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        db.close()</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># app/models/todo.py</span></span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> Boolean, DateTime, String, func</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.orm <span class="keyword">import</span> DeclarativeBase, Mapped, mapped_column</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span>(<span class="title class_ inherited__">DeclarativeBase</span>):</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Todo</span>(<span class="title class_ inherited__">Base</span>):</span><br><span class="line">    __tablename__ = <span class="string">&quot;todos&quot;</span></span><br><span class="line">    <span class="built_in">id</span>: Mapped[<span class="built_in">int</span>] = mapped_column(primary_key=<span class="literal">True</span>)</span><br><span class="line">    title: Mapped[<span class="built_in">str</span>] = mapped_column(String(<span class="number">100</span>), index=<span class="literal">True</span>)</span><br><span class="line">    completed: Mapped[<span class="built_in">bool</span>] = mapped_column(Boolean, default=<span class="literal">False</span>)</span><br><span class="line">    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())</span><br></pre></td></tr></table></figure>
+<p>在开发入口创建表仅适合演示：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> app.models.todo <span class="keyword">import</span> Base</span><br><span class="line"><span class="keyword">from</span> app.db.session <span class="keyword">import</span> engine</span><br><span class="line"></span><br><span class="line">Base.metadata.create_all(bind=engine)</span><br></pre></td></tr></table></figure>
+<p>生产环境应使用 Alembic 管理迁移。写入时将多步业务操作放在同一事务中，异常时 <code>rollback()</code>；成功后 <code>commit()</code>，必要时 <code>refresh()</code> 取得数据库生成的字段。</p>
+<h2 id="8-项目组织与路由拆分"><a class="markdownIt-Anchor" href="#8-项目组织与路由拆分"></a> 8. 项目组织与路由拆分</h2>
+<p>完成单文件 CRUD 并接入持久化后，再把代码按职责拆分；这样目录中的每一层都有明确来处。不要把所有路由、数据库和认证逻辑堆到 <code>main.py</code>。</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">app/</span><br><span class="line">  main.py              # 创建应用、挂载路由、中间件</span><br><span class="line">  core/config.py        # Settings、环境配置</span><br><span class="line">  api/routes/todos.py   # APIRouter 与 HTTP 层</span><br><span class="line">  schemas/todo.py       # Pydantic 请求/响应模型</span><br><span class="line">  models/todo.py        # ORM 模型</span><br><span class="line">  services/todo.py      # 业务规则</span><br><span class="line">  db/session.py         # Engine、Session 依赖</span><br><span class="line">  tests/</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># app/api/routes/todos.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> APIRouter</span><br><span class="line"></span><br><span class="line">router = APIRouter(prefix=<span class="string">&quot;/todos&quot;</span>, tags=[<span class="string">&quot;todos&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="meta">@router.get(<span class="params"><span class="string">&quot;&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">list_todos</span>():</span><br><span class="line">    <span class="keyword">return</span> []</span><br><span class="line"></span><br><span class="line"><span class="comment"># app/main.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"><span class="keyword">from</span> app.api.routes <span class="keyword">import</span> todos</span><br><span class="line"></span><br><span class="line">app = FastAPI()</span><br><span class="line">app.include_router(todos.router, prefix=<span class="string">&quot;/api/v1&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>版本前缀使破坏性 API 变更可以并行发布，例如保留 <code>/api/v1</code>，新增 <code>/api/v2</code>。不要把数据库 Session 或 Web 框架对象扩散到核心业务层，服务层更易测试和替换。</p>
+<h2 id="9-认证-授权与安全基线"><a class="markdownIt-Anchor" href="#9-认证-授权与安全基线"></a> 9. 认证、授权与安全基线</h2>
+<p>认证回答“你是谁”，授权回答“你能做什么”。FastAPI 可通过 <code>fastapi.security</code> 集成 OAuth2 Bearer Token，以下是路由层的最小形态：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, HTTPException, status</span><br><span class="line"><span class="keyword">from</span> fastapi.security <span class="keyword">import</span> OAuth2PasswordBearer</span><br><span class="line"></span><br><span class="line">oauth2_scheme = OAuth2PasswordBearer(tokenUrl=<span class="string">&quot;/api/v1/auth/token&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_current_user</span>(<span class="params">token: Annotated[<span class="built_in">str</span>, Depends(<span class="params">oauth2_scheme</span>)]</span>):</span><br><span class="line">    <span class="comment"># 验签、检查 exp / iss / aud，查询用户；失败统一返回 401</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> token:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;id&quot;</span>: <span class="string">&quot;user-1&quot;</span>, <span class="string">&quot;role&quot;</span>: <span class="string">&quot;member&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/me&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">read_me</span>(<span class="params">user: Annotated[<span class="built_in">dict</span>, Depends(<span class="params">get_current_user</span>)]</span>):</span><br><span class="line">    <span class="keyword">return</span> user</span><br></pre></td></tr></table></figure>
+<p>安全要点：</p>
+<ul>
+<li>密码使用 Argon2 或 bcrypt 等专用哈希，不保存明文，也不自行实现哈希算法；</li>
+<li>JWT 只签发必要声明，校验签名、过期时间、签发方和受众；密钥放在环境变量或密钥服务；</li>
+<li>对每个资源做对象级授权，例如待办必须属于当前用户，不能只校验“已登录”；</li>
+<li>CORS 仅列出可信前端源，携带 Cookie 时不可使用通配源；</li>
+<li>限制上传类型/大小，统一日志脱敏，并为登录、写操作设置限流和审计；</li>
+<li>HTTPS 在反向代理或应用入口终止，生产环境关闭 <code>--reload</code> 和调试信息。</li>
+</ul>
+<h2 id="10-异步的正确使用方式"><a class="markdownIt-Anchor" href="#10-异步的正确使用方式"></a> 10. 异步的正确使用方式</h2>
+<table>
+<thead>
+<tr>
+<th>工作类型</th>
+<th>推荐写法</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通 CPU 计算或同步 ORM</td>
+<td><code>def</code> 路由</td>
+<td>FastAPI 会在线程池执行同步路径函数</td>
+</tr>
+<tr>
+<td>async HTTP、WebSocket、AsyncSession</td>
+<td><code>async def</code> + <code>await</code></td>
+<td>等待 I/O 时可让出事件循环</td>
+</tr>
+<tr>
+<td>大文件解析、图片处理、模型推理</td>
+<td>队列/进程池/独立服务</td>
+<td>避免阻塞 Web 进程和事件循环</td>
+</tr>
+</tbody>
+</table>
+<p><code>async def</code> 内使用 <code>requests</code>、同步数据库驱动或 <code>time.sleep()</code> 会阻塞事件循环。异步 HTTP 客户端可使用 <code>httpx.AsyncClient</code>；延时使用 <code>await asyncio.sleep()</code>。并发不是无限资源，仍需要连接池、超时、限流和下游熔断策略。</p>
+<h2 id="11-中间件-生命周期与后台任务"><a class="markdownIt-Anchor" href="#11-中间件-生命周期与后台任务"></a> 11. 中间件、生命周期与后台任务</h2>
+<p>中间件适合请求 ID、耗时、统一安全响应头等 HTTP 横切能力。<code>BackgroundTasks</code> 只适合短小、可丢失的进程内工作，例如发通知；邮件批量发送、文件转码、重试任务应使用 Celery、RQ、Arq 或消息队列。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Request</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.middleware(<span class="params"><span class="string">&quot;http&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">add_process_time</span>(<span class="params">request: Request, call_next</span>):</span><br><span class="line">    started = time.perf_counter()</span><br><span class="line">    response = <span class="keyword">await</span> call_next(request)</span><br><span class="line">    response.headers[<span class="string">&quot;X-Process-Time&quot;</span>] = <span class="string">f&quot;<span class="subst">&#123;time.perf_counter() - started:<span class="number">.6</span>f&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p>应用初始化和释放资源使用 <code>lifespan</code>。例如启动时建立共享 HTTP 客户端，停止时关闭；不要每次请求都创建昂贵的连接池。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> asynccontextmanager</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI</span><br><span class="line"></span><br><span class="line"><span class="meta">@asynccontextmanager</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">lifespan</span>(<span class="params">app: FastAPI</span>):</span><br><span class="line">    <span class="comment"># 初始化连接池、模型或客户端</span></span><br><span class="line">    <span class="keyword">yield</span></span><br><span class="line">    <span class="comment"># 关闭和清理资源</span></span><br><span class="line"></span><br><span class="line">app = FastAPI(lifespan=lifespan)</span><br></pre></td></tr></table></figure>
+<h2 id="12-文件-表单-websocket-与流式响应"><a class="markdownIt-Anchor" href="#12-文件-表单-websocket-与流式响应"></a> 12. 文件、表单、WebSocket 与流式响应</h2>
+<p>文件和表单使用 <code>File</code>、<code>UploadFile</code>、<code>Form</code>。<code>UploadFile</code> 比一次性读入 <code>bytes</code> 更适合大文件；上传前后都要校验扩展名、MIME、大小和实际内容。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated</span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> File, UploadFile</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.post(<span class="params"><span class="string">&quot;/files&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">upload_file</span>(<span class="params">file: Annotated[UploadFile, File(<span class="params"></span>)]</span>):</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;filename&quot;</span>: file.filename, <span class="string">&quot;content_type&quot;</span>: file.content_type&#125;</span><br></pre></td></tr></table></figure>
+<p>WebSocket 是长连接协议，认证、心跳、断连清理、消息大小限制和订阅授权不能省略。SSE 或 <code>StreamingResponse</code> 更适合服务端单向推送，例如 LLM 文本流。</p>
+<h2 id="13-测试先测-http-合约再测业务规则"><a class="markdownIt-Anchor" href="#13-测试先测-http-合约再测业务规则"></a> 13. 测试：先测 HTTP 合约，再测业务规则</h2>
+<p>FastAPI 的 <code>TestClient</code> 可在不启动真实服务器时测试 HTTP 行为。测试中覆盖依赖，可以替换真实数据库、外部支付或认证服务。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># tests/test_health.py</span></span><br><span class="line"><span class="keyword">from</span> fastapi.testclient <span class="keyword">import</span> TestClient</span><br><span class="line"><span class="keyword">from</span> app.main <span class="keyword">import</span> app</span><br><span class="line"></span><br><span class="line">client = TestClient(app)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test_health_check</span>():</span><br><span class="line">    response = client.get(<span class="string">&quot;/&quot;</span>)</span><br><span class="line">    <span class="keyword">assert</span> response.status_code == <span class="number">200</span></span><br><span class="line">    <span class="keyword">assert</span> response.json() == &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>建议至少覆盖：成功路径、422 参数错误、401/403、404、数据库事务回滚、分页边界和关键业务幂等性。对 <code>get_db</code> 覆盖为测试事务或临时数据库，测试结束后回滚，避免测试污染开发数据。</p>
+<h2 id="14-配置-日志-观测与部署"><a class="markdownIt-Anchor" href="#14-配置-日志-观测与部署"></a> 14. 配置、日志、观测与部署</h2>
+<p>配置应随环境改变，不应硬编码在代码里。可用 <code>pydantic-settings</code> 从环境变量和 <code>.env</code> 加载，并将密钥排除在 Git 之外。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># app/core/config.py</span></span><br><span class="line"><span class="keyword">from</span> pydantic_settings <span class="keyword">import</span> BaseSettings, SettingsConfigDict</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Settings</span>(<span class="title class_ inherited__">BaseSettings</span>):</span><br><span class="line">    model_config = SettingsConfigDict(env_file=<span class="string">&quot;.env&quot;</span>, extra=<span class="string">&quot;ignore&quot;</span>)</span><br><span class="line">    database_url: <span class="built_in">str</span></span><br><span class="line">    jwt_secret: <span class="built_in">str</span></span><br><span class="line">    debug: <span class="built_in">bool</span> = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">settings = Settings()</span><br></pre></td></tr></table></figure>
+<p>部署检查清单：</p>
+<ul>
+<li>使用 <code>uvicorn app.main:app --host 0.0.0.0 --port 8000</code> 或由 Gunicorn/Uvicorn worker 管理进程；</li>
+<li>放在 Nginx、Traefik 或云负载均衡器之后，正确处理 <code>X-Forwarded-*</code> 代理头；</li>
+<li>提供 <code>/healthz</code>、<code>/readyz</code>，区分进程存活和依赖就绪；</li>
+<li>记录结构化日志，关联 request ID，监控错误率、延迟、吞吐量和数据库连接池；</li>
+<li>对数据库迁移、密钥轮换、备份恢复和依赖漏洞建立发布流程；</li>
+<li>容器化时以非 root 用户运行，固定依赖版本，区分构建期与运行期配置。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://kukual.github.io/">pinefaith</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://pinelief.github.io/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">https://pinelief.github.io/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://pinelief.github.io" target="_blank">Pinefaith's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/avatar.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>感谢您的支持</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/loading.gif" data-original="/img/wechat.jpg" alt="寰俊"/></a><div class="post-qr-code-desc">寰俊</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/05/18/hexo%E6%80%8E%E4%B9%88%E5%86%99%E5%8D%9A%E5%AE%A2/" title="GitHub + Hexo 博客写作全攻略：常用命令、排版技巧与部署经验"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GitHub + Hexo 博客写作全攻略：常用命令、排版技巧与部署经验</div></div><div class="info-2"><div class="info-item-1"> GitHub + Hexo 博客写作全攻略：常用命令、排版技巧与部署经验 很多人搭建个人博客时，都会选择 Hexo + GitHub Pages 这一套组合。原因很简单：免费、轻量、部署方便，而且非常适合程序员和喜欢折腾的人。 我自己在使用 Hexo 写博客的过程中，踩过不少坑，也慢慢总结出了一套比较顺手的写作流程。这篇文章就把 Hexo 博客写作时常用的命令、排版技巧、资源管理方法，以及部署到 GitHub 的经验 全部整理一下，方便以后查阅，也希望能帮到刚开始接触 Hexo 的朋友。   一、Hexo 是什么，为什么适合搭配 GitHub Hexo 是一个基于 Node.js 的静态博客框架。简单理解，它会把你写好的 Markdown 文件生成静态网页，然后你可以把这些网页部署到 GitHub Pages 上。 这一套方案的优点很明显：  写作时只需要专注 Markdown 内容 页面生成速度快 适合技术博客、学习笔记、生活记录 可以和 Git 配合做版本管理 部署到 GitHub Pages 的成本几乎为零  如果你本身就熟悉 GitHub，那么 Hexo 会非常顺手。 ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/loading.gif" data-original="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">pinefaith</div><div class="author-info-description">归途也还可爱</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://kukual.github.io/"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://chenpinefaith.github.io/" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:c2735066426@163.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><style>
+.announcement-card {
+    --main-color: #ff00ff;
+    --secondary-color: #00ffff;
+    --highlight-color: #ff5500;
+    position: relative;
+    overflow: hidden;
+}
+.announcement-content {
+    font-size: 1rem; 
+    line-height: 1.2; 
+    color: #ffffff;
+    position: relative;
+}
+.keyword {
+    color: var(--secondary-color);
+    font-weight: 300;
+    font-size: 1.1rem; 
+}
+.highlight {
+    color: var(--main-color);
+    font-weight: 1000;
+    font-size: 1.2rem; 
+}
+.announcement-content ul {
+    list-style-type: none;
+    margin: 0.8rem 0; 
+    padding-left: 1.5rem;   
+}
+</style>
+<div class="announcement-card">
+    <div class="announcement-content">
+        <p><span class="highlight">欢迎来到「Pinefaith」的小站</span>！</p>
+        <p><strong>这里主要记录：</strong></p>
+        <ul>
+            <li><span class="keyword">Hexo 博客折腾、学习笔记与生活分享</span></li>
+        </ul>
+        <p>很高兴认识你，欢迎常来看看。</p>
+    </div>
+</div>
+</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#fastapi-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%BB%8E%E7%AC%AC%E4%B8%80%E4%B8%AA%E6%8E%A5%E5%8F%A3%E5%88%B0%E5%8F%AF%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.</span> <span class="toc-text"> FastAPI 学习笔记：从第一个接口到可部署服务</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-fastapi-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">1.1.</span> <span class="toc-text"> 1. FastAPI 解决什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85-%E5%90%AF%E5%8A%A8%E4%B8%8E%E4%BA%A4%E4%BA%92%E6%96%87%E6%A1%A3"><span class="toc-number">1.2.</span> <span class="toc-text"> 2. 安装、启动与交互文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%B7%AF%E5%BE%84-%E6%9F%A5%E8%AF%A2%E4%B8%8E%E8%AF%B7%E6%B1%82%E4%BD%93%E5%8F%82%E6%95%B0"><span class="toc-number">1.3.</span> <span class="toc-text"> 3. 路径、查询与请求体参数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E9%80%89%E5%AD%97%E6%AE%B5-%E5%88%AB%E5%90%8D%E4%B8%8E%E5%A4%9A%E8%AF%B7%E6%B1%82%E4%BD%93"><span class="toc-number">1.3.1.</span> <span class="toc-text"> 可选字段、别名与多请求体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-pydantic%E6%A0%A1%E9%AA%8C%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">1.4.</span> <span class="toc-text"> 4. Pydantic：校验与序列化的边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%93%8D%E5%BA%94-%E7%8A%B6%E6%80%81%E7%A0%81%E4%B8%8E%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text"> 5. 响应、状态码与错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%94%A8%E8%AF%B7%E6%B1%82%E7%BA%A7%E9%80%BB%E8%BE%91"><span class="toc-number">1.6.</span> <span class="toc-text"> 6. 依赖注入：复用请求级逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-sqlalchemy-20-%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BC%9A%E8%AF%9D"><span class="toc-number">1.7.</span> <span class="toc-text"> 7. SQLAlchemy 2.0 与数据库会话</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E9%A1%B9%E7%9B%AE%E7%BB%84%E7%BB%87%E4%B8%8E%E8%B7%AF%E7%94%B1%E6%8B%86%E5%88%86"><span class="toc-number">1.8.</span> <span class="toc-text"> 8. 项目组织与路由拆分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E8%AE%A4%E8%AF%81-%E6%8E%88%E6%9D%83%E4%B8%8E%E5%AE%89%E5%85%A8%E5%9F%BA%E7%BA%BF"><span class="toc-number">1.9.</span> <span class="toc-text"> 9. 认证、授权与安全基线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%BC%82%E6%AD%A5%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">1.10.</span> <span class="toc-text"> 10. 异步的正确使用方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E4%B8%AD%E9%97%B4%E4%BB%B6-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%8E%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.11.</span> <span class="toc-text"> 11. 中间件、生命周期与后台任务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E6%96%87%E4%BB%B6-%E8%A1%A8%E5%8D%95-websocket-%E4%B8%8E%E6%B5%81%E5%BC%8F%E5%93%8D%E5%BA%94"><span class="toc-number">1.12.</span> <span class="toc-text"> 12. 文件、表单、WebSocket 与流式响应</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E6%B5%8B%E8%AF%95%E5%85%88%E6%B5%8B-http-%E5%90%88%E7%BA%A6%E5%86%8D%E6%B5%8B%E4%B8%9A%E5%8A%A1%E8%A7%84%E5%88%99"><span class="toc-number">1.13.</span> <span class="toc-text"> 13. 测试：先测 HTTP 合约，再测业务规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-%E9%85%8D%E7%BD%AE-%E6%97%A5%E5%BF%97-%E8%A7%82%E6%B5%8B%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">1.14.</span> <span class="toc-text"> 14. 配置、日志、观测与部署</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/19/FastAPI%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="FastAPI学习笔记">FastAPI学习笔记</a><time datetime="2026-07-19T09:18:20.000Z" title="发表于 2026-07-19 17:18:20">2026-07-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/05/18/hexo%E6%80%8E%E4%B9%88%E5%86%99%E5%8D%9A%E5%AE%A2/" title="GitHub + Hexo 博客写作全攻略：常用命令、排版技巧与部署经验">GitHub + Hexo 博客写作全攻略：常用命令、排版技巧与部署经验</a><time datetime="2025-05-18T08:00:00.000Z" title="发表于 2025-05-18 16:00:00">2025-05-18</time></div></div></div></div></div></div></main><footer id="footer" style="background: transparent;"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By pinefaith</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script defer src="/js/cursor.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="输入关键词搜索" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div>
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z\d\-\.\+]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(t.test(e.href)||r.test(e.href))&&(e.href=a.dataset.original)})});</script><script>(r=>{r.imageLazyLoadSetting.processImages=t;var a=r.imageLazyLoadSetting.isSPA,o=r.imageLazyLoadSetting.preloadRatio||1,d=i();function i(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(t){(a||t)&&(d=i());for(var e,n=0;n<d.length;n++)0<=(e=(e=d[n]).getBoundingClientRect()).bottom&&0<=e.left&&e.top<=(r.innerHeight*o||document.documentElement.clientHeight*o)&&(()=>{var t,e,a,o,i=d[n];e=function(){d=d.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).dataset.loaded||(t.hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(a=new Image,o=t.getAttribute("data-original"),a.onload=function(){t.src=o,t.removeAttribute("data-original"),t.setAttribute("data-loaded",!0),e&&e()},a.onerror=function(){t.removeAttribute("data-original"),t.setAttribute("data-loaded",!1),t.src=o},t.src!==o&&(a.src=o)))})()}function e(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",e),r.addEventListener("resize",e),r.addEventListener("orientationchange",e)})(this);</script></body></html>
